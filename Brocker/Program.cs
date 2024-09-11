@@ -2,9 +2,7 @@
 
 using System.Net.Sockets;
 using System.Text;
-using Brocker.Models;
 using Brocker.Services;
-using Newtonsoft.Json;
 
 int port = 8143;
 string ip = "192.168.1.5";
@@ -18,6 +16,7 @@ tcpConnectionListener.SocketEmitter += AttachToThread;
 
 void AttachToThread(Socket socket)
 {
+    Console.WriteLine("From attach to thread");
     Thread thread = new Thread(new ThreadStart(() => { ReceiveMessage(socket); }));
     thread.Start();
 }
@@ -40,39 +39,20 @@ void ReceiveMessage(Socket socket)
 
             } while (socket.Available > 0);
 
+            Console.WriteLine("Hallo");
             string stringCommand = sb.ToString();
             sb.Clear();
-
-            Command<dynamic>? command = JsonConvert.DeserializeObject<Command<dynamic>>(stringCommand);
             
-            if (command is not null)
-            {
-                if (command.Content.Data is Article)
-                {
-                    Command<Article> commandArticle = (Command<Article>)command;
-                }
-            {
-                
-            }
-            else if (command.Content.Data is string)
-            {
-                Console.WriteLine("Topic Name: " + command.Data.Name);
-            }
-            }
-
-        }
-        catch (SocketException e)
-        {
-            
+            commandHandler.HandleStringCommand(socket, stringCommand);
         }
         catch (Exception e)
         {
-            
+            Console.WriteLine("Disconnect");
+            break;
         }
 
     }
 }
-
 
 
 

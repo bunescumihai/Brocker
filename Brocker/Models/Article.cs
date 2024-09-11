@@ -2,8 +2,8 @@
 
 public class Article
 {
-    private Topic Topic { get; }
-    private string Content { get; }
+    public Topic Topic { get; }
+    public string Content { get; }
 
     public Article(Topic topic, string content)
     {

@@ -2,7 +2,7 @@
 
 public class Topic
 {
-    private string Name { get; }
+    public string Name { get; }
 
     public Topic(string name)
     {
