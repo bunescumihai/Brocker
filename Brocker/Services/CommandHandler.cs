@@ -18,11 +18,13 @@ public class CommandHandler
     public void HandleStringCommand(Socket socket, string stringCommand)
     {
         Console.WriteLine("Handle string command: " + stringCommand);
+        
         try
         {
             Command<String>? strCommand;
             Command<Article>? articleCommand;
             Command<Topic>? topicCommand;
+            Command<User>? userCommand;
 
             var command = JsonConvert.DeserializeObject<CommandBase>(stringCommand);
             
@@ -32,23 +34,48 @@ public class CommandHandler
 
             if (command.Name.ToUpper().Equals(CommandType.TakeAnArticle.ToUpper()))
             {
-                articleCommand = JsonConvert.DeserializeObject<Command<Article>>(stringCommand);
+                var artCommand = JsonConvert.DeserializeObject<AuthorizedCommand<Article>>(stringCommand);
+
+                if(artCommand is null)
+                    throw new JsonSerializationException();
+
+                Core.HandleReceivedArticle(socket, artCommand.Credentials , artCommand.Content);
+            }
+            
+            
+            else if (command.Name.ToUpper().Equals(CommandType.RegisterAsSender.ToUpper()))
+            {
+                userCommand = JsonConvert.DeserializeObject<Command<User>>(stringCommand);
                 
-                if(articleCommand is null)
+                if(userCommand is null)
                     throw new JsonSerializationException();
                 
-                Core.HandleReceivedArticle(socket, articleCommand.Content);
+                Core.RegisterAsReceiver(socket, userCommand.Content);
+            }   
+            
+            else if (command.Name.ToUpper().Equals(CommandType.RegisterAsReceiver.ToUpper()))
+            {
+                userCommand = JsonConvert.DeserializeObject<Command<User>>(stringCommand);
+                
+                if(userCommand is null)
+                    throw new JsonSerializationException();
+                
+                Core.RegisterAsSender(socket, userCommand.Content);
             }
-            else if (command.Name.ToUpper() == CommandType.Subscribe.ToUpper())
+
+
+            else if (command.Name.ToUpper().Equals(CommandType.Subscribe.ToUpper()))
             {
                 topicCommand = JsonConvert.DeserializeObject<Command<Topic>>(stringCommand);
-                
+                    
                 if(topicCommand is null)
                     throw new JsonSerializationException();
 
                 Core.SubscribeToTopic(socket, topicCommand.Content);
             }
-            else if (command.Name.ToUpper() == CommandType.Unsubscribe.ToUpper())
+            
+            
+            else if (command.Name.ToUpper().Equals(CommandType.Unsubscribe.ToUpper()))
             {
                 topicCommand = JsonConvert.DeserializeObject<Command<Topic>>(stringCommand);
                 
@@ -57,7 +84,9 @@ public class CommandHandler
                 
                 Core.UnsubscribeFromTopic(socket, topicCommand.Content);
             }
-            else if (command.Name.ToUpper() == CommandType.GetTopics.ToUpper())
+            
+            
+            else if (command.Name.ToUpper().Equals(CommandType.GetTopics.ToUpper()))
             {
                 Core.SendTopics(socket);
             }
@@ -79,6 +108,10 @@ public class CommandHandler
         catch (BadTopicException e)
         {
             Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400, "Bad topic"));
+        }
+        catch (UserExistsException e)
+        {
+            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400, e.Message));
         }
         catch (BadCommandException e)
         {

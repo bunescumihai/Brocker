@@ -5,7 +5,7 @@ using System.Text;
 using Brocker.Services;
 
 int port = 8143;
-string ip = "172.20.10.5";
+string ip = "192.168.1.5";
 
 CommandHandler commandHandler = CommandHandler.GetCommandHandler();
 

@@ -2,12 +2,18 @@
 using System.Text;
 using Brocker.Exceptions;
 using Brocker.Models;
+using Brocker.Repositories;
+using Brocker.Repositories.Implementations;
 using Newtonsoft.Json;
 
 namespace Brocker.Services;
 
 public static class Core
 {
+    private static ITopicRepository _topicRepository = new TopicRepository();
+    private static IUserRepository _userRepository = new UserRepository();
+    private static IArticleRepository _articleRepository = new ArticleRepository();
+    
     public static void SubscribeToTopic(Socket socket, Topic topic)
     {
         if (!TopicsManager.ExistsTopic(topic))
@@ -21,6 +27,20 @@ public static class Core
         subscriber.AddTopic(topic);
         
         SendResponse<string>(socket, new Response<string>(StatusCode.s200, $"You were subscribed to {topic.Name}"));
+    }
+    
+    public static void RegisterAsSender(Socket socket, User user)
+    {
+        var usr = _userRepository.RegisterLikeASender(user.UserName, user.Password);
+        
+        SendResponse<User>(socket, new Response<User>(StatusCode.s200, user));
+    }
+    
+    public static void RegisterAsReceiver(Socket socket, User user)
+    {
+        var usr = _userRepository.RegisterLikeAReceiver(user.UserName, user.Password);
+        
+        SendResponse<User>(socket, new Response<User>(StatusCode.s200, user));
     }
     
     public static void UnsubscribeFromTopic(Socket socket, Topic topic)
@@ -40,13 +60,8 @@ public static class Core
     
     public static void SendTopics(Socket socket)
     {
-        var sb = new StringBuilder();
-        var topics = TopicsManager.Topics;
-
-        sb.Append("Available topics:\n");
-        
-        for(int i = 0; i < topics.Count; i++)
-            sb.Append($"{i}. {topics[i].Name}");
+        Console.WriteLine("From Send Topics");
+        var topics = _topicRepository.GetTopics();
 
         SendResponse<List<Topic>>(socket, new Response<List<Topic>>(StatusCode.s200, topics));
     }
@@ -66,14 +81,25 @@ public static class Core
             }
     }
 
-    public static void HandleReceivedArticle(Socket socket, Article article)
+    public static void HandleReceivedArticle(Socket socket,ICredentials credentials,  Article article)
     {
-        SendResponse<string>(socket, new Response<string>(StatusCode.s200, "Your article is received"));
+        var user = _userRepository.GetUser(credentials.UserName, credentials.Password);
         
-        if (!TopicsManager.ExistsTopic(article.Topic))
+        if (user is null)
+            throw new UnauthorizedException();
+        
+        SendResponse<string>(socket, new Response<string>(StatusCode.s200, "Your article is received"));
+
+        var topic = _topicRepository.ExistsTopic(article.Topic.Name);
+        
+        if (topic is null)
             throw new BadTopicException();
         
-        SendArticleToSubscribers(article);
+        var art = new Article();
+        
+        
+            
+        _articleRepository.CreateArticle(new Article());
     }
 
     public static void SendSimpleResponse(Socket socket, Response<string> stringResponse)

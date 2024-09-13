@@ -11,8 +11,8 @@ public class User
     public UserRole? UserRole { get; set; }
 
     public List<Article> Articles { get; } = new();
-    public List<Sending> Sendings { get; set; } = new();  // Navigation property for received articles
-    public List<Subscription> Subscriptions { get; set; } = new();  // Navigation for subscribed topics
+    public List<Sending> Sendings { get; set; } = new();  
+    public List<Subscription> Subscriptions { get; set; } = new();
 
     public User(string userName, string password, UserRole userRole)
     {
@@ -20,4 +20,6 @@ public class User
         Password = password;
         UserRole = userRole;
     }
+
+    public User(){}
 }

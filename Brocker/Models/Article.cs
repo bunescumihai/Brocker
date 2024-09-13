@@ -15,4 +15,8 @@ public class Article
     public User Sender { get; set; }  // Navigation property
 
     public List<Sending> Sendings { get; set; } = new();  // Navigation property for Receivers
+
+    public Article(){};
+    
+    
 }

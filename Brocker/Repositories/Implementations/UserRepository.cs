@@ -19,6 +19,18 @@ public class UserRepository: IUserRepository
         var user = new User(username, password, UserRole.Sender);
         return SaveUser(user);
     }
+    
+
+    public List<Article> GetSenderArticles(User user)
+    {
+        return _brockerDbContext.Articles.Where(article => article.Sender.Id == user.Id).ToList();
+    }
+
+    public User? GetUser(string username, string password)
+    {
+        return _brockerDbContext.Users.First(u => u.UserName.Equals(username) && u.Password.Equals(password));
+    }
+
 
     private User SaveUser(User user)
     {
