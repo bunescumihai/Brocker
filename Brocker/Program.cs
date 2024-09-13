@@ -2,21 +2,20 @@
 
 using System.Net.Sockets;
 using System.Text;
+using Brocker.DbContexts;
 using Brocker.Services;
 
 int port = 8143;
 string ip = "172.20.10.5";
 
-CommandHandler commandHandler = new CommandHandler();
+CommandHandler commandHandler = CommandHandler.GetCommandHandler();
 
 TcpConnectionListener tcpConnectionListener = new TcpConnectionListener(port, ip);
 
 tcpConnectionListener.SocketEmitter += AttachToThread;
 
-
 void AttachToThread(Socket socket)
 {
-    Console.WriteLine("From attach to thread");
     Thread thread = new Thread(new ThreadStart(() => { ReceiveMessage(socket); }));
     thread.Start();
 }

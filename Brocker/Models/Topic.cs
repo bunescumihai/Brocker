@@ -1,12 +1,15 @@
-﻿namespace Brocker.Models;
+﻿using Brocker.Models.Configurations;
+using Microsoft.EntityFrameworkCore;
 
+namespace Brocker.Models;
+
+[EntityTypeConfiguration(typeof(TopicConfiguration))]
 public class Topic
 {
-    public string Name { get; }
+    public int Id { get; set; }
+    public string Name { get; set; }
 
-    public Topic(string name)
-    {
-        Name = name;
-    }
+    public List<Article> Articles { get; } = new();
+    public List<Subscription> Subscriptions { get; set; } = new();  // Navigation property for users subscribing
 }
 

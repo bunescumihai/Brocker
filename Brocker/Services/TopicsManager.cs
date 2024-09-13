@@ -5,7 +5,7 @@ namespace Brocker.Services;
 
 public static class TopicsManager
 {
-    public static List<Topic> Topics { get; } = new List<Topic> { new Topic("Music"), new Topic("Football") };
+    public static List<Topic> Topics { get; } = new List<Topic> { new Topic(), new Topic() };
 
     public static bool ExistsTopic(Topic topic)
     {
