@@ -55,8 +55,7 @@ public class CommandHandler
                 Core.SendTopics(socket);
             }
             else throw new BadCommandException();
-            
-            
+
         }
         catch (JsonReaderException e)
         {
@@ -76,6 +75,8 @@ public class CommandHandler
         }
         catch (BadCommandException e)
         {
+            Console.WriteLine("Bad Command");
+            
             var sb = new StringBuilder();
 
             sb.Append("Bad command. Available commands:\n");

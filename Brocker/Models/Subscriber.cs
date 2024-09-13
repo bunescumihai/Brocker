@@ -5,7 +5,7 @@ namespace Brocker.Models;
 public class Subscriber
 {
     public Socket Socket { get; }
-    private List<Topic> Topics { get; } = new List<Topic>();
+    public List<Topic> Topics { get; } = new List<Topic>();
 
     public Subscriber(Socket socket)
     {

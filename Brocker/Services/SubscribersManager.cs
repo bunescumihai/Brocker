@@ -36,5 +36,20 @@ public static class SubscribersManager
         if (subscriber is not null)
             Subscribers.Remove(subscriber);
     }
+
+    public static List<Subscriber> GetTopicSubscribers(Topic topic)
+    {
+        List<Subscriber> list = new List<Subscriber>();
+        
+        foreach (var sub in Subscribers)
+            foreach (var tp in sub.Topics)
+                if (tp.Name.Equals(topic.Name))
+                    {
+                        list.Add(sub);
+                        break;
+                    }  
+        
+        return list;
+    }
     
 }
