@@ -5,12 +5,19 @@ using Microsoft.EntityFrameworkCore;
 [EntityTypeConfiguration(typeof(UserConfiguration))]
 public class User
 {
-    public int Id { get; set; }
-    public string UserName { get; set; }
-    public string Password { get; set; }
-    public UserRole UserRole { get; set; }
+    public int? Id { get; set; }
+    public string? UserName { get; set; }
+    public string? Password { get; set; }
+    public UserRole? UserRole { get; set; }
 
     public List<Article> Articles { get; } = new();
     public List<Sending> Sendings { get; set; } = new();  // Navigation property for received articles
     public List<Subscription> Subscriptions { get; set; } = new();  // Navigation for subscribed topics
+
+    public User(string userName, string password, UserRole userRole)
+    {
+        UserName = userName;
+        Password = password;
+        UserRole = userRole;
+    }
 }

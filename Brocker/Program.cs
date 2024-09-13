@@ -2,7 +2,6 @@
 
 using System.Net.Sockets;
 using System.Text;
-using Brocker.DbContexts;
 using Brocker.Services;
 
 int port = 8143;
@@ -38,7 +37,6 @@ void ReceiveMessage(Socket socket)
 
             } while (socket.Available > 0);
 
-            Console.WriteLine("Hallo");
             string stringCommand = sb.ToString();
             sb.Clear();
             

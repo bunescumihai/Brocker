@@ -1,9 +1,7 @@
 ﻿using System.Net.Sockets;
 using System.Text;
-using Brocker.DbContexts;
 using Brocker.Exceptions;
 using Brocker.Models;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 
 namespace Brocker.Services;
@@ -12,8 +10,7 @@ public class CommandHandler
 {
 
     private static CommandHandler _commandHandler = new CommandHandler();
-    private BrockerDbContext DbContext = new BrockerDbContext();
-
+    
     public static CommandHandler GetCommandHandler() => _commandHandler;
     
     private CommandHandler(){}

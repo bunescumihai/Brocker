@@ -5,6 +5,13 @@ namespace Brocker.DbContexts;
 
 public class BrockerDbContext: DbContext
 {
+
+    private static BrockerDbContext _brockerDbContext = new BrockerDbContext();
+    
+    private BrockerDbContext(){}
+
+    public static BrockerDbContext GetBrockerDbContext() => _brockerDbContext;
+    
     public DbSet<User> Users { get; set; }
     public DbSet<Article> Articles { get; set; }
     public DbSet<Topic> Topics { get; set; }
