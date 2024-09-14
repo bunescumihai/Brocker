@@ -5,9 +5,7 @@ namespace Brocker.Models;
 
 public class AuthorizedCommand<T>: Command<T>
 {
-    public ICredentials Credentials { get; set; }
+    public Credentials Credentials { get; set; }
 
-    public AuthorizedCommand(string name, T content) : base(name, content)
-    {
-    }
+    public AuthorizedCommand(string name, T content) : base(name, content) { }
 }

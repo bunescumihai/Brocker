@@ -5,7 +5,7 @@ namespace Brocker.Repositories;
 public interface IReceiverRepository
 {
     List<Article> GetArticles(User user);
-    Subscription SubscribeToTopic(User user, Topic topic);
-    bool UnsubscribeFromTopic(User user, Topic topic);
+    Subscription SubscribeToTopic(int userId, int topicId);
+    bool UnsubscribeFromTopic(int userId, int topicId);
     
 }

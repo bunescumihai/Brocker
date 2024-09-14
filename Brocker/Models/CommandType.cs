@@ -8,4 +8,5 @@ public static class CommandType
     public static string TakeAnArticle = "TakeAnArticle";
     public static string RegisterAsSender = "RegisterAsSender";
     public static string RegisterAsReceiver = "RegisterAsReceiver";
+    public static string StartReceivingArticles = "StartReceivingArticles";
 }

@@ -13,4 +13,12 @@ public class Subscription
 
     public int UserId { get; set; }
     public User User { get; set; }  // Navigation property
+    
+    public Subscription(){}
+
+    public Subscription(int userId, int topicId)
+    {
+        UserId = userId;
+        TopicId = topicId;
+    }
 }

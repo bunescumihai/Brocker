@@ -16,7 +16,13 @@ public class Article
 
     public List<Sending> Sendings { get; set; } = new();  // Navigation property for Receivers
 
-    public Article(){};
-    
+    public Article(){}
+
+    public Article(int senderId, int topicId, string content)
+    {
+        TopicId = topicId;
+        Content = content;
+        SenderId = senderId;
+    }
     
 }

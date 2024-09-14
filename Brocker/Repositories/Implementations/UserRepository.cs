@@ -28,7 +28,7 @@ public class UserRepository: IUserRepository
 
     public User? GetUser(string username, string password)
     {
-        return _brockerDbContext.Users.First(u => u.UserName.Equals(username) && u.Password.Equals(password));
+        return _brockerDbContext.Users.FirstOrDefault(u => u.UserName.Equals(username) && u.Password.Equals(password));
     }
 
 

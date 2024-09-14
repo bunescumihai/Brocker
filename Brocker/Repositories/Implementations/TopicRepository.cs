@@ -9,5 +9,5 @@ public class TopicRepository : ITopicRepository
 
     public List<Topic> GetTopics() => _dbContext.Topics.ToList();
 
-    public Topic? ExistsTopic(string name) => _dbContext.Topics.First(topic => topic.Name.Equals(name));
+    public Topic? ExistsTopic(string name) => _dbContext.Topics.FirstOrDefault(topic => topic.Name.Equals(name));
 }
