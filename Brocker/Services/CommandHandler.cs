@@ -1,5 +1,4 @@
 ﻿using System.Net.Sockets;
-using System.Text;
 using Brocker.Exceptions;
 using Brocker.Models;
 using Brocker.Repositories;
@@ -133,17 +132,7 @@ public class CommandHandler
         }
         catch (BadCommandException e)
         {
-            Console.WriteLine("Bad Command");
-            
-            var sb = new StringBuilder();
-
-            sb.Append("Bad command. Available commands:\n");
-            sb.Append("1. Subscribe.\n");
-            sb.Append("2. Unsubscribe.\n");
-            sb.Append("3. GetTopics.\n");
-            sb.Append("4. TakeAnArticle.\n");
-
-            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400, sb.ToString()));
+            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400, "Bad command"));
         }
         catch (Exception e)
         {

@@ -2,7 +2,10 @@
 
 using System.Net.Sockets;
 using System.Text;
+using Brocker.Repositories;
+using Brocker.Repositories.Implementations;
 using Brocker.Services;
+using Newtonsoft.Json;
 
 int port = 8143;
 string ip = "192.168.1.5";
@@ -13,12 +16,14 @@ TcpConnectionListener tcpConnectionListener = new TcpConnectionListener(port, ip
 
 tcpConnectionListener.SocketEmitter += AttachToThread;
 
+Thread articleSenderThread = new Thread(new ThreadStart(SendArticles));
+articleSenderThread.Start();
+
 void AttachToThread(Socket socket)
 {
     Thread thread = new Thread(new ThreadStart(() => { ReceiveMessage(socket); }));
     thread.Start();
 }
-
 
 void ReceiveMessage(Socket socket)
 {
@@ -51,7 +56,55 @@ void ReceiveMessage(Socket socket)
     }
 }
 
+void SendArticles()
+{
+    IArticleRepository articleRepository = new ArticleRepository();
+    
+    ConnectionsManager connectionsManager = ConnectionsManager.GetConnectionsManager();
+    
+    foreach (var connection in connectionsManager.Connections)
+    {
+        var user = connection.User;
+        if (SocketConnected(connection.Socket))
+        {
+            var articles = articleRepository.GetUnsentArticles(user);
+            
+            if(articles.Count < 1)
+                continue;
+            
+            var st = JsonConvert.SerializeObject(articles);
+            
+            Console.WriteLine(st);
+            
+            byte[] bytes = Encoding.UTF8.GetBytes(st);
+            try
+            {
+                connection.Socket.Send(bytes);
+                articleRepository.CancelSending(user, articles);
+            }
+            catch (Exception e)
+            {
+                connectionsManager.AddConnectionToRemove(connection);
+            }
+        }
+    }
+    
+    connectionsManager.RemoveConnections();
+    
+    Thread.Sleep(1000);
+}
 
+
+
+bool SocketConnected(Socket s)
+{
+    bool part1 = s.Poll(1000, SelectMode.SelectRead);
+    bool part2 = (s.Available == 0);
+    if (part1 && part2)
+        return false;
+    else
+        return true;
+}
 
 
 
