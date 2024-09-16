@@ -2,6 +2,7 @@
 
 using System.Net.Sockets;
 using System.Text;
+using Brocker.Models;
 using Brocker.Repositories;
 using Brocker.Repositories.Implementations;
 using Brocker.Services;
@@ -72,9 +73,9 @@ void SendArticles()
             if(articles.Count < 1)
                 continue;
             
-            var st = JsonConvert.SerializeObject(articles);
+            var response = new Response<List<Article>>(StatusCode.s200, connection.RequestId, articles);
             
-            Console.WriteLine(st);
+            var st = JsonConvert.SerializeObject(response);
             
             byte[] bytes = Encoding.UTF8.GetBytes(st);
             try
@@ -100,6 +101,7 @@ bool SocketConnected(Socket s)
 {
     bool part1 = s.Poll(1000, SelectMode.SelectRead);
     bool part2 = (s.Available == 0);
+    
     if (part1 && part2)
         return false;
     else

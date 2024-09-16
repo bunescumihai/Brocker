@@ -19,12 +19,12 @@ public class CommandHandler
     public void HandleStringCommand(Socket socket, string stringCommand)
     {
         Console.WriteLine("Handle string command: " + stringCommand);
-        
+        CommandBase command = new CommandBase();
         try
         {
             Command<User>? userCommand;
 
-            var command = JsonConvert.DeserializeObject<CommandBase>(stringCommand);
+            command = JsonConvert.DeserializeObject<CommandBase>(stringCommand);
             
             if (command is null)
                 throw new JsonSerializationException();
@@ -36,7 +36,7 @@ public class CommandHandler
                 if(artCommand is null)
                     throw new JsonSerializationException();
 
-                Core.HandleReceivedArticle(socket, artCommand.Credentials , artCommand.Content);
+                Core.HandleReceivedArticle(socket, command.RequestId, artCommand.Credentials , artCommand.Content);
             }
 
             else if (command.Name.ToUpper().Equals(CommandType.RegisterAsSender.ToUpper()))
@@ -46,7 +46,7 @@ public class CommandHandler
                 if(userCommand is null)
                     throw new JsonSerializationException();
                 
-                Core.RegisterAsReceiver(socket, userCommand.Content);
+                Core.RegisterAsReceiver(socket, command.RequestId, userCommand.Content);
             }   
             
             else if (command.Name.ToUpper().Equals(CommandType.RegisterAsReceiver.ToUpper()))
@@ -56,7 +56,7 @@ public class CommandHandler
                 if(userCommand is null)
                     throw new JsonSerializationException();
                 
-                Core.RegisterAsSender(socket, userCommand.Content);
+                Core.RegisterAsSender(socket, command.RequestId, userCommand.Content);
             }
 
             else if (command.Name.ToUpper().Equals(CommandType.Subscribe.ToUpper()))
@@ -68,7 +68,7 @@ public class CommandHandler
                 
                 Console.WriteLine(JsonConvert.SerializeObject(com));
                 
-                Core.SubscribeToTopic(socket, com.Credentials, com.Content);
+                Core.SubscribeToTopic(socket, command.RequestId, com.Credentials, com.Content);
             }
             
             else if (command.Name.ToUpper().Equals(CommandType.Unsubscribe.ToUpper()))
@@ -78,7 +78,7 @@ public class CommandHandler
                 if(tp is null)
                     throw new JsonSerializationException();
                 
-                Core.UnsubscribeFromTopic(socket, tp.Credentials ,tp.Content);
+                Core.UnsubscribeFromTopic(socket, command.RequestId, tp.Credentials ,tp.Content);
             }
             
             else if (command.Name.ToUpper().Equals(CommandType.StartReceivingArticles.ToUpper()))
@@ -95,12 +95,12 @@ public class CommandHandler
                 if (user is null || user.UserRole == UserRole.Receiver)
                     throw new PermissionException();
                 
-                _connectionsManager.AddConnection(new Connection(){Socket = socket, User = user});
+                _connectionsManager.AddConnection(new Connection(){Socket = socket, User = user, RequestId = command.RequestId});
             }
             
             else if (command.Name.ToUpper().Equals(CommandType.GetTopics.ToUpper()))
             {
-                Core.SendTopics(socket);
+                Core.SendTopics(socket, command.RequestId);
             }
             
             else throw new BadCommandException();
@@ -108,11 +108,11 @@ public class CommandHandler
         }
         catch (JsonReaderException e)
         {
-            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400, "Bad json format"));
+            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400, command.RequestId,  "Bad json format"));
         }
         catch (JsonSerializationException e)
         {
-            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400, "Bad object"));
+            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400, command.RequestId,"Bad object"));
         }
         catch (SocketException e)
         {
@@ -120,19 +120,19 @@ public class CommandHandler
         }
         catch (BadTopicException e)
         {
-            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400, "Bad topic"));
+            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400,command.RequestId, "Bad topic"));
         }
         catch (UserExistsException e)
         {
-            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400, e.Message));
+            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400,command.RequestId, e.Message));
         }
         catch (PermissionException e)
         {
-            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400, e.Message));
+            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400,command.RequestId, e.Message));
         }
         catch (BadCommandException e)
         {
-            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400, "Bad command"));
+            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400,command.RequestId, "Bad command"));
         }
         catch (Exception e)
         {

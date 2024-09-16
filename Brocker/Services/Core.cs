@@ -15,7 +15,7 @@ public static class Core
     private static IArticleRepository _articleRepository = new ArticleRepository();
     private static IReceiverRepository _receiverRepository = new ReceiverRepository();
     
-    public static void SubscribeToTopic(Socket socket, Credentials credentials, Topic topic)
+    public static void SubscribeToTopic(Socket socket, string requestId,  Credentials credentials, Topic topic)
     {
         var user = _userRepository.GetUser(credentials.UserName, credentials.Password);
         
@@ -32,10 +32,10 @@ public static class Core
 
         _receiverRepository.SubscribeToTopic((int)user.Id!, (int)tp.Id!);
         
-        SendResponse<string>(socket, new Response<string>(StatusCode.s200, $"You were subscribed to topic {tp.Name}"));
+        SendResponse<string>(socket, new Response<string>(StatusCode.s200, requestId,$"You were subscribed to topic {tp.Name}"));
     }
     
-    public static void UnsubscribeFromTopic(Socket socket, Credentials credentials, Topic topic)
+    public static void UnsubscribeFromTopic(Socket socket, string requestId, Credentials credentials, Topic topic)
     {
         var user = _userRepository.GetUser(credentials.UserName, credentials.Password);
         
@@ -52,30 +52,30 @@ public static class Core
 
         _receiverRepository.UnsubscribeFromTopic((int)user.Id!, (int)tp.Id!);
         
-        SendResponse<string>(socket, new Response<string>(StatusCode.s200, $"You were unsubscribed from topic {tp.Name}"));
+        SendResponse<string>(socket, new Response<string>(StatusCode.s200, requestId, $"You were unsubscribed from topic {tp.Name}"));
     }
     
-    public static void RegisterAsSender(Socket socket, User user)
+    public static void RegisterAsSender(Socket socket, string requestId, User user)
     {
         var usr = _userRepository.RegisterLikeASender(user.UserName, user.Password);
-        SendResponse<User>(socket, new Response<User>(StatusCode.s200, user));
+        SendResponse<User>(socket, new Response<User>(StatusCode.s200,requestId, user));
     }
     
-    public static void RegisterAsReceiver(Socket socket, User user)
+    public static void RegisterAsReceiver(Socket socket, string requestId, User user)
     {
         var usr = _userRepository.RegisterLikeAReceiver(user.UserName, user.Password);
         
-        SendResponse<User>(socket, new Response<User>(StatusCode.s200, user));
+        SendResponse<User>(socket, new Response<User>(StatusCode.s200, requestId, user));
     }
 
-    public static void SendTopics(Socket socket)
+    public static void SendTopics(Socket socket, string requestId)
     {
         var topics = _topicRepository.GetTopics();
 
-        SendResponse<List<Topic>>(socket, new Response<List<Topic>>(StatusCode.s200, topics));
+        SendResponse<List<Topic>>(socket, new Response<List<Topic>>(StatusCode.s200, requestId, topics));
     }
 
-    public static void HandleReceivedArticle(Socket socket,Credentials credentials,  Article article)
+    public static void HandleReceivedArticle(Socket socket, string requestId, Credentials credentials,  Article article)
     {
         var user = _userRepository.GetUser(credentials.UserName, credentials.Password);
         
@@ -89,7 +89,7 @@ public static class Core
 
         _articleRepository.CreateArticle(new Article((int)user.Id!, (int)topic.Id!, article.Content));
         
-        SendResponse<string>(socket, new Response<string>(StatusCode.s200, "Your article was received"));
+        SendResponse<string>(socket, new Response<string>(StatusCode.s200, requestId,"Your article was received"));
     }
 
     public static void SendSimpleResponse(Socket socket, Response<string> stringResponse)
