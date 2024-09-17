@@ -1,4 +1,5 @@
 ﻿using System.Net.Sockets;
+using System.Text;
 using Brocker.Exceptions;
 using Brocker.Models;
 using Brocker.Repositories;
@@ -7,19 +8,23 @@ using Newtonsoft.Json;
 
 namespace Brocker.Services;
 
-public class CommandHandler
+public class RequestHandler
 {
 
-    private static CommandHandler _commandHandler = new CommandHandler();
-    public static CommandHandler GetCommandHandler() => _commandHandler;
-    private CommandHandler(){}
+    private static RequestHandler _requestHandler = new RequestHandler();
+    public static RequestHandler GetCommandHandler() => _requestHandler;
+    private RequestHandler(){}
 
     private ConnectionsManager _connectionsManager = ConnectionsManager.GetConnectionsManager();
     
-    public void HandleStringCommand(Socket socket, string stringCommand)
+    public void HandleRequest(Socket socket, string stringCommand)
     {
         Console.WriteLine("Handle string command: " + stringCommand);
         CommandBase command = new CommandBase();
+        
+        Response response = new Response(StatusCode.s400, "No response");
+        string requestId = "Null";
+        
         try
         {
             Command<User>? userCommand;
@@ -29,6 +34,8 @@ public class CommandHandler
             if (command is null)
                 throw new JsonSerializationException();
             
+            requestId = command.RequestId;
+            
             if (command.Name.ToUpper().Equals(CommandType.TakeAnArticle.ToUpper()))
             {
                 var artCommand = JsonConvert.DeserializeObject<AuthorizedCommand<Article>>(stringCommand);
@@ -36,7 +43,7 @@ public class CommandHandler
                 if(artCommand is null)
                     throw new JsonSerializationException();
 
-                Core.HandleReceivedArticle(socket, command.RequestId, artCommand.Credentials , artCommand.Content);
+                response = Core.HandleReceivedArticle(artCommand.Credentials , artCommand.Content);
             }
 
             else if (command.Name.ToUpper().Equals(CommandType.RegisterAsSender.ToUpper()))
@@ -46,7 +53,7 @@ public class CommandHandler
                 if(userCommand is null)
                     throw new JsonSerializationException();
                 
-                Core.RegisterAsReceiver(socket, command.RequestId, userCommand.Content);
+                response = Core.RegisterAsReceiver(userCommand.Content);
             }   
             
             else if (command.Name.ToUpper().Equals(CommandType.RegisterAsReceiver.ToUpper()))
@@ -56,7 +63,7 @@ public class CommandHandler
                 if(userCommand is null)
                     throw new JsonSerializationException();
                 
-                Core.RegisterAsSender(socket, command.RequestId, userCommand.Content);
+                response =  Core.RegisterAsSender(userCommand.Content);
             }
 
             else if (command.Name.ToUpper().Equals(CommandType.Subscribe.ToUpper()))
@@ -68,7 +75,7 @@ public class CommandHandler
                 
                 Console.WriteLine(JsonConvert.SerializeObject(com));
                 
-                Core.SubscribeToTopic(socket, command.RequestId, com.Credentials, com.Content);
+                response = Core.SubscribeToTopic(com.Credentials, com.Content);
             }
             
             else if (command.Name.ToUpper().Equals(CommandType.Unsubscribe.ToUpper()))
@@ -78,7 +85,7 @@ public class CommandHandler
                 if(tp is null)
                     throw new JsonSerializationException();
                 
-                Core.UnsubscribeFromTopic(socket, command.RequestId, tp.Credentials ,tp.Content);
+                response = Core.UnsubscribeFromTopic(tp.Credentials ,tp.Content);
             }
             
             else if (command.Name.ToUpper().Equals(CommandType.StartReceivingArticles.ToUpper()))
@@ -100,7 +107,7 @@ public class CommandHandler
             
             else if (command.Name.ToUpper().Equals(CommandType.GetTopics.ToUpper()))
             {
-                Core.SendTopics(socket, command.RequestId);
+                response = Core.GetTopics();
             }
             
             else throw new BadCommandException();
@@ -108,11 +115,11 @@ public class CommandHandler
         }
         catch (JsonReaderException e)
         {
-            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400, command.RequestId,  "Bad json format"));
+            response = new Response(StatusCode.s400,  "Bad json format");
         }
         catch (JsonSerializationException e)
         {
-            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400, command.RequestId,"Bad object"));
+            response = new Response(StatusCode.s400, "Bad object");
         }
         catch (SocketException e)
         {
@@ -120,23 +127,41 @@ public class CommandHandler
         }
         catch (BadTopicException e)
         {
-            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400,command.RequestId, "Bad topic"));
+            response = new Response(StatusCode.s400, "Bad topic");
         }
         catch (UserExistsException e)
         {
-            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400,command.RequestId, e.Message));
+            response = new Response(StatusCode.s400, e.Message);
         }
         catch (PermissionException e)
         {
-            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400,command.RequestId, e.Message));
+            response = new Response(StatusCode.s400, e.Message);
         }
         catch (BadCommandException e)
         {
-            Core.SendSimpleResponse(socket, new Response<string>(StatusCode.s400,command.RequestId, "Bad command"));
+            response = new Response(StatusCode.s400, "Bad command");
         }
         catch (Exception e)
         {
             Console.WriteLine("Something went wrong in HandleStringCommand!");
+        }
+
+        response.RequestId = requestId;
+        
+        SendResponse(socket,  response);
+    }
+    
+    private void SendResponse(Socket socket, Response response)
+    {
+        byte[] buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(response));
+        
+        try
+        {
+            socket.Send(buffer);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
         }
     }
 }

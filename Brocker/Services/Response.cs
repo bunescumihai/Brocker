@@ -2,16 +2,18 @@
 
 namespace Brocker.Models;
 
-public class Response<T>
+public class Response
 {
-    public StatusCode StatusCode { get; }
-    public string RequestId { get; }
-    public T Content { get; }
+    public StatusCode StatusCode { get; set; }
+    public string RequestId { get; set; }
+    public object Content { get; set; }
 
-    public Response(StatusCode statusCode, string requestId, T content)
+    public Response(StatusCode statusCode, object content)
     {
         StatusCode = statusCode;
         Content = content;
-        RequestId = requestId;
     }
+    
+    public Response()
+    { }
 }

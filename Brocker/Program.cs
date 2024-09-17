@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 int port = 8143;
 string ip = "192.168.1.5";
 
-CommandHandler commandHandler = CommandHandler.GetCommandHandler();
+RequestHandler requestHandler = RequestHandler.GetCommandHandler();
 
 TcpConnectionListener tcpConnectionListener = new TcpConnectionListener(port, ip);
 
@@ -46,7 +46,7 @@ void ReceiveMessage(Socket socket)
             string stringCommand = sb.ToString();
             sb.Clear();
             
-            commandHandler.HandleStringCommand(socket, stringCommand);
+            requestHandler.HandleRequest(socket, stringCommand);
         }
         catch (Exception e)
         {
@@ -73,7 +73,12 @@ void SendArticles()
             if(articles.Count < 1)
                 continue;
             
-            var response = new Response<List<Article>>(StatusCode.s200, connection.RequestId, articles);
+            var response = new Response()
+            {
+                StatusCode = StatusCode.s200,
+                RequestId = connection.RequestId,
+                Content = articles
+            };
             
             var st = JsonConvert.SerializeObject(response);
             
@@ -95,8 +100,6 @@ void SendArticles()
     Thread.Sleep(1000);
 }
 
-
-
 bool SocketConnected(Socket s)
 {
     bool part1 = s.Poll(1000, SelectMode.SelectRead);
@@ -107,8 +110,3 @@ bool SocketConnected(Socket s)
     else
         return true;
 }
-
-
-
-
-
