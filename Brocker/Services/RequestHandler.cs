@@ -99,7 +99,7 @@ public class RequestHandler
 
                 var user = ur.GetUser(cr.Content.UserName, cr.Content.Password);
                 
-                if (user is null || user.UserRole == UserRole.Receiver)
+                if (user is null || user.UserRole != UserRole.Receiver)
                     throw new PermissionException();
                 
                 _connectionsManager.AddConnection(new Connection(){Socket = socket, User = user, RequestId = command.RequestId});
@@ -116,6 +116,10 @@ public class RequestHandler
         catch (JsonReaderException e)
         {
             response = new Response(StatusCode.s400,  "Bad json format");
+        }
+        catch (UnauthorizedException e)
+        {
+            response = new Response(StatusCode.s401,  e.Message);
         }
         catch (JsonSerializationException e)
         {

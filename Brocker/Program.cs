@@ -9,7 +9,7 @@ using Brocker.Services;
 using Newtonsoft.Json;
 
 int port = 8143;
-string ip = "192.168.1.5";
+string ip = "172.20.10.3";
 
 RequestHandler requestHandler = RequestHandler.GetCommandHandler();
 
