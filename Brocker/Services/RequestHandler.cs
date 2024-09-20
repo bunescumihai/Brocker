@@ -90,19 +90,24 @@ public class RequestHandler
             
             else if (command.Name.ToUpper().Equals(CommandType.StartReceivingArticles.ToUpper()))
             {
-                var cr = JsonConvert.DeserializeObject<Command<Credentials>>(stringCommand);
+                var cr = JsonConvert.DeserializeObject<AuthorizedCommand<Article>>(stringCommand);
                 
                 if(cr is null)
                     throw new JsonSerializationException();
+                
+                Console.WriteLine("deserialized credentials" +  cr.Credentials.UserName + " pass " + cr.Credentials.Password);
 
                 IUserRepository ur = new UserRepository();
 
-                var user = ur.GetUser(cr.Content.UserName, cr.Content.Password);
-                
+                var user = ur.GetUser(cr.Credentials.UserName, cr.Credentials.Password);
+
                 if (user is null || user.UserRole != UserRole.Receiver)
                     throw new PermissionException();
-                
+
                 _connectionsManager.AddConnection(new Connection(){Socket = socket, User = user, RequestId = command.RequestId});
+
+                response = new Response()
+                    { Content = "You are about to receive articles", RequestId = command.RequestId, StatusCode = StatusCode.s200 };
             }
             
             else if (command.Name.ToUpper().Equals(CommandType.GetTopics.ToUpper()))

@@ -21,7 +21,15 @@ public class ArticleRepository: IArticleRepository
     {
         return _dbContext.Sendings
             .Where(ua => ua.UserId == user.Id)
-            .Select(ua => ua.Article)
+            .Select(ua => new Article()
+            {
+                Id = ua.Article.Id,
+                Topic = new Topic(){Name = ua.Article.Topic.Name},
+                TopicId = ua.Article.Topic.Id ?? 0,
+                Content = ua.Article.Content,
+                SenderId = ua.Article.SenderId,
+                Sender = new User(){UserName = ua.Article.Sender.UserName}
+            })
             .ToList();
     }
 

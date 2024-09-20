@@ -9,7 +9,7 @@ using Brocker.Services;
 using Newtonsoft.Json;
 
 int port = 8143;
-string ip = "172.20.10.3";
+string ip = "192.168.116.50";
 
 RequestHandler requestHandler = RequestHandler.GetCommandHandler();
 
@@ -59,9 +59,18 @@ void ReceiveMessage(Socket socket)
 
 void SendArticles()
 {
+    
+    
     IArticleRepository articleRepository = new ArticleRepository();
     
     ConnectionsManager connectionsManager = ConnectionsManager.GetConnectionsManager();
+
+    while (true)
+    {
+        
+    Thread.Sleep(5000);
+    
+    Console.WriteLine("Connections : " + connectionsManager.Connections.Count);
     
     foreach (var connection in connectionsManager.Connections)
     {
@@ -70,6 +79,9 @@ void SendArticles()
         {
             var articles = articleRepository.GetUnsentArticles(user);
             
+            Console.WriteLine("Articles Count: "+ articles.Count);
+            Console.WriteLine("User: " + user.UserName );
+
             if(articles.Count < 1)
                 continue;
             
@@ -80,7 +92,11 @@ void SendArticles()
                 Content = articles
             };
             
-            var st = JsonConvert.SerializeObject(response);
+            var st = JsonConvert.SerializeObject(response, Formatting.Indented,
+                new JsonSerializerSettings() {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                }
+            );
             
             byte[] bytes = Encoding.UTF8.GetBytes(st);
             try
@@ -93,11 +109,15 @@ void SendArticles()
                 connectionsManager.AddConnectionToRemove(connection);
             }
         }
+        else
+        {
+            connectionsManager.AddConnectionToRemove(connection);
+        }
     }
     
     connectionsManager.RemoveConnections();
     
-    Thread.Sleep(1000);
+    }
 }
 
 bool SocketConnected(Socket s)
